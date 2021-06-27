@@ -1,0 +1,5 @@
+{% for node in groups[consul_nodes_group] %}
+node "{{ hostvars[node]['ansible_hostname'] }}" {
+  policy = "write"
+}
+{% endfor %}

@@ -1,0 +1,55 @@
+- name: Install consul
+  become: True
+  apt:
+    state: present
+    update_cache: yes
+    cache_valid_time: 1800
+    name:
+      - consul
+
+- name: Configure consul
+  become: True
+  template:
+    src: consul.hcl.j2
+    dest: /etc/consul.d/01-ansible.hcl
+    owner: root
+    group: consul
+    mode: 0640
+  notify: restart consul
+
+- name: Create ACL template directory
+  become: True
+  file:
+    path: /etc/consul.d/acl
+    state: directory
+    owner: root
+    group: consul
+    mode: 0750
+
+- name: Create Consul ACL node templates
+  become: True
+  with_items: "{{ groups[consul_nodes_group] }}"
+  template:
+    src: "acl-node.hcl.j2"
+    dest: "/etc/consul.d/acl/{{ hostvars[item]['ansible_hostname'] }}-policy.hcl"
+    owner: root
+    group: consul
+    mode: 0640
+
+- name: Create Consul ACL README
+  become: True
+  template:
+    src: "acl-readme.j2"
+    dest: "/etc/consul.d/acl/README.md"
+    owner: root
+    group: consul
+    mode: 0640
+
+- name: Create Consul vault ACL
+  become: True
+  template:
+    src: "consul-vault.json.j2"
+    dest: "/etc/consul.d/acl/vault.json"
+    owner: root
+    group: consul
+    mode: 0640

@@ -1,0 +1,8 @@
+# Use `consul keygen`
+# consul_gossip_key: deliberately not defined
+# consul_nodes_group: deliberately not defined
+consul_dc_name: "default"
+consul_servers: []
+consul_raft_multiplier: 5
+consul_default_token_action: "allow"
+consul_bind_addr: "0.0.0.0"

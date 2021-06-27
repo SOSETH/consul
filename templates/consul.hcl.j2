@@ -1,0 +1,57 @@
+datacenter = "{{ consul_dc_name }}"
+data_dir = "/var/lib/consul"
+
+encrypt = "{{ consul_gossip_key }}"
+ca_file = "/etc/consul.d/ca.pem"
+cert_file = "/etc/consul.d/server.pem"
+key_file = "/etc/consul.d/server.key"
+verify_incoming = true
+verify_outgoing = true
+verify_server_hostname = true
+node_name = "{{ ansible_hostname }}"
+
+server = true
+bind_addr = "{{ consul_bind_addr }}"
+bootstrap_expect = {{ consul_servers|length() }}
+enable_syslog = true
+retry_join = [
+{% for item in consul_servers %}
+  "{{ item }}"{% if not loop.last %},{% endif %}
+
+{% endfor %}
+
+]
+
+ui = false
+disable_update_check = true
+log_level = "error"
+
+performance {
+  raft_multiplier = {{ consul_raft_multiplier }}
+}
+
+acl {
+  enabled = true
+  default_policy = "{{ consul_default_token_action }}"
+  enable_token_persistence = true
+}
+
+autopilot {
+  last_contact_threshold = "10s"
+}
+
+telemetry {
+  disable_hostname = true
+  prometheus_retention_time = "60s"
+}
+
+ports {
+ dns = -1
+ http = -1
+ grpc = -1
+ serf_wan = -1
+
+ https = 8501
+ serf_lan = 8301
+ server = 8300
+}

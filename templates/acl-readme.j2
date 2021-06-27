@@ -1,0 +1,56 @@
+# Consul ACL README
+
+This procedure has to be executed _manuall_ (yes I know) at the beginning and
+then again whenever you add a consul server.
+
+## Initial setup
+After the role has successfully been exec'd, you need to initialize ACLs on a
+new cluster. Do:
+```
+export CONSUL_HTTP_ADDR=127.0.0.1:8501
+export CONSUL_CACERT=/etc/consul.d/ca.pem
+export CONSUL_CLIENT_CERT=/etc/consul.d/server.pem
+export CONSUL_CLIENT_KEY=/etc/consul.d/server.key
+export CONSUL_HTTP_SSL=true
+consul acl bootstrap
+```
+
+This will output the bootstrap token. STORE THIS IN A SAFE PLACE!
+(gpg encrypt the file...)
+
+For subsequent commands, you'll need the root token:
+```
+ export CONSUL_HTTP_TOKEN=<secret id>
+```
+PREFIX WITH BLANK SO THAT IT DOESN'T GET ADDED TO THE HISTORY
+
+Afterwards, you need to create the node policies and then add the token on each
+node. Do:
+
+```
+cd /etc/consul.d/acl
+{% for node in groups[consul_nodes_group] %}
+consul acl policy create -name {{ hostvars[node]['ansible_hostname'] }} -rules @{{ hostvars[node]['ansible_hostname'] }}-policy.hcl
+consul acl token create -description "{{ hostvars[node]['ansible_hostname'] }} agent token" \
+  -policy-name {{ hostvars[node]['ansible_hostname'] }}
+{% endfor %}
+```
+This will print out a bunch of agent tokens. Then, on each node, you need to
+```
+export CONSUL_HTTP_ADDR=127.0.0.1:8501
+export CONSUL_CACERT=/etc/consul.d/ca.pem
+export CONSUL_CLIENT_CERT=/etc/consul.d/server.pem
+export CONSUL_CLIENT_KEY=/etc/consul.d/server.key
+export CONSUL_HTTP_SSL=true
+ consul acl set-agent-token agent "<agent token here>"
+```
+
+Afterwards, set the default action to deny and re-rollout the node.
+
+## Vault
+If you want to use vault with this consul installation, do
+```
+consul acl policy create -name "vault" -rules @vault.json
+consul acl token create -description "Token for Vault" \
+  -policy-name vault
+```
