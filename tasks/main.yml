@@ -53,3 +53,12 @@
     owner: root
     group: consul
     mode: 0640
+
+- name: Create Consul prometheus ACL
+  become: True
+  template:
+    src: "consul-prometheus.json.j2"
+    dest: "/etc/consul.d/acl/prometheus.json"
+    owner: root
+    group: consul
+    mode: 0640

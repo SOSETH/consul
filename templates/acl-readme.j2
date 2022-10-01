@@ -53,4 +53,12 @@ If you want to use vault with this consul installation, do
 consul acl policy create -name "vault" -rules @vault.json
 consul acl token create -description "Token for Vault" \
   -policy-name vault
+
+## Prometheus
+If you want to use Prometheus with this consul installation, do
 ```
+consul acl policy create -name "prometheus" -rules @prometheus.json
+consul acl token create -description "Token for Prometheus" \
+  -policy-name prometheus
+```
+and use that token in the Prometheus configuration
